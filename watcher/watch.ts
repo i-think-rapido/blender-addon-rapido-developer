@@ -100,14 +100,14 @@ const removeAllFiles = debounce((files: string[], dest: string) => {
   files.forEach(f => removeFile(f, dest));
 }, DEBOUNCE);
 
-const reloadAddon = async () => {
+const reloadAddon = debounce(async (addonName: string) => {
   try {
-    fetch('http://127.0.0.1:11111/reload-addon');
+    fetch(`http://127.0.0.1:11111/reload-addon/${addonName}`);
   }
   catch (error) {
     console.error(error)
   }
-}
+}, DEBOUNCE);
 
 const startSync = async (addonName: string, watchedPath: string, destinationPath: string) => {
 
@@ -133,12 +133,12 @@ const startSync = async (addonName: string, watchedPath: string, destinationPath
       case 'modify':
         copyList = [...new Set(copyList.concat(relPaths))];
         copyAllFiles(copyList, destinationPath, watchedPath);
-        await reloadAddon();
+        await reloadAddon(addonName);
         break;
       case 'remove':
         delList = [...new Set(copyList.concat(relPaths))];
         removeAllFiles(delList, destinationPath);
-        await reloadAddon();
+        await reloadAddon(addonName);
         break;
     }
 
