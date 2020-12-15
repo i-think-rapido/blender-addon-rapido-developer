@@ -2,6 +2,7 @@
 
 clean:
 	find . -name '*.py[co]' -delete
+	rm -rf dist build
 
 virtualenv:
 	python -m venv --prompt '|> rapidodeveloper <| ' .venv
@@ -23,7 +24,6 @@ docker: clean
 	docker build -t rapidodeveloper:latest .
 
 dist: clean
-	rm -rf dist/*
 	python setup.py sdist
 	python setup.py bdist_wheel
 	python .venv/bin/rapidodeveloper build-addon
