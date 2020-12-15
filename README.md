@@ -17,15 +17,25 @@ This repo is the result.
 
 ## How to Use Rapido Developer Addon
 
-### 1. Part
+**WARNING:** The current state of this addon works, but is not production ready.
+
+### Preparation
 
 Get a copy of the newest version of this addon.
 
 [https://github.com/i-think-rapido/blender-addon-rapido-developer](https://github.com/i-think-rapido/blender-addon-rapido-developer)
 
-Use the build script to create an import zip file to be used for import in Blender.
+Create virtual an environment environment.
 
-You can find this file in folder: ```<project-root>/dist```.
+```
+$ make virtualenv
+```
+
+### 1. Part - Installing the Rapdio Developer Addon in Blender
+
+Use the command ```rapidodeveloper build-addon``` to create an import zip file to be used for import in Blender.
+
+You can find this installer file in folder: ```<project-root>/dist```.
 
 Then open the ```Edit > Preferences > Addons``` dialog of the preferences in Blender and import the zip file.
 
@@ -33,60 +43,103 @@ Activate the Community tab and search for ```rapido```.
 
 Activate ```Development: Rapido Developer``` *(This may take some seconds)*
 
-### 2. Part
+You may set the Scripts Path of Blender to a folder that suits you.
 
-**Preparation**
+You can configure this setting in ```Edit > Preferences > File Paths > Scripts```
 
-You need an execution program for running the client. This is (a) ```deno``` from [https://deno.land](https://deno.land).
+If you change this setting while having Rapido Developer Addon acitivated, you have to deactivate and reactivate this addon again to refresh the inner path settings of this addon.
 
-You find installation instructions at [https://deno.land/manual/getting_started/installation](https://deno.land/manual/getting_started/installation).
+When activated, blender starts listening on port 11111 on your local machine for commands provided by the watcher (see 2. Part)
 
-After installation, create a project folder and start implementing your addon.
+### 2. Part - Usage of the command line tool
 
-When you want to sync this folder with Blender, start the client and leave it running until you're done.
+Create a project folder for your addon, if you don't already have one.
 
-This is done by opening your favorite Terminal program of your operating system. (On Windows: [WIN]+R, then type in ```cmd``` + [ENTER].)
+The best preparation would be to have a working ```__init__.py``` file in this folder with an appropriate ```bl_info``` dictionary.
 
-The command is:
+Use the command
 
-```bash
-# in one line, type:
-deno run --allow-read --allow-write --allow-net --watch --unstable <project-root>/watcher/watch.ts <addon-name-without-spaces> <folder-to-watch>
-# replace the brackets with approriate values
+```
+$ rapidodeveloper watch <addon-name> <addon-folder to be watched (default: current folder)>
 ```
 
-You can see an example in the ```<project-root>/start-watching.sh``` file.
+to start watching your changes.
 
-**Nothing more to do.** Rapido Developer Addon takes care of the rest.
+Remember, you need to have the Rapido Developer Addon activated when watching a folder. Otherwise the command line tool will abort with an error.
 
-**Hint:** You can have several clients runing.
+### Further Notes
 
-### TODOs
+It is recommended to open the console window where blender is running during the development of your addon. 
+This way you can notice errors or debug output messages of you addon.
 
-* I need some refactoring in web server and client code to enhence readability.
-* The web server port is fixed to ```11111```. This needs to be changeable.
-* The addon part of this tool is not tested for Linux and MacOS Blender *but should work*.
+On linux or macOS, you should start blender from the command line.
 
-### If You Find Bugs
+On Windows, you have a menu entry at ```Window > Toggle System Console``` to open the console window.
 
-Post them at [https://github.com/i-think-rapido/blender-addon-rapido-developer/issues](https://github.com/i-think-rapido/blender-addon-rapido-developer/issues)
+## Installation
 
-## The Concept Behind It
+```
+$ pip install -r requirements.txt
 
-I want to have a development folder in my project. 
+$ pip install setup.py
+```
 
-When I save a file, it should simutaniously sync it with the Blender addon folder and reload the addon automatically.
+## Development
 
-First, I wanted to use the *watchdog* in this addon and install it with pip. But unfortunately installing third party modules for Blender python is very difficult. (At least for me.)
+This project includes a number of helpers in the `Makefile` to streamline common development tasks.
 
-*I shifted to another approach:*
+### Environment Setup
 
-This tool consists of two parts:
+The following demonstrates setting up and working with a development environment:
 
-- A basic web server encapsulated within my addon
-- A client which does the heavy lifting and syncs the folders
+```
+### create a virtualenv for development
 
-Changes to my development folder where synced to the Blender addon folder outside of Blender. Then the client notifies the addon via REST API to reload the addon.
+$ make virtualenv
 
-To get the client ready for work, it discovers the actual Blender addon folder by calling the web server on startup. Blender must be running and having **Rapido Developer Addon** activated when doing this.
+$ source env/bin/activate
 
+
+### run rapidodeveloper cli application
+
+$ rapidodeveloper --help
+
+
+### run pytest / coverage
+
+$ make test
+```
+
+
+### Releasing to PyPi
+
+Before releasing to PyPi, you must configure your login credentials:
+
+**~/.pypirc**:
+
+```
+[pypi]
+username = YOUR_USERNAME
+password = YOUR_PASSWORD
+```
+
+Then use the included helper function via the `Makefile`:
+
+```
+$ make dist
+
+$ make dist-upload
+```
+
+## Deployments
+
+### Docker
+
+Included is a basic `Dockerfile` for building and distributing `Rapido Developer`,
+and can be built with the included `make` helper:
+
+```
+$ make docker
+
+$ docker run -it rapidodeveloper --help
+```
